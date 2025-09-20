@@ -11,9 +11,10 @@
         <meta name="description" content="Your app description here" />
 
         <!-- PWA -->
-
+        <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
 
         <title>Your App</title>
     </head>
@@ -21,54 +22,68 @@
         <noscript>JavaScript is required to run this app.</noscript>
         <div id="root"></div>
 
-        <!-- SW registration: works with VitePWA registerType: 'autoUpdate' or manual -->
+        <!-- Manual Service Worker Registration -->
         <script>
-            // If you use VitePWA({ registerType: 'autoUpdate' }), this is optional.
-            // For manual control (and your current workbox SW), keep this:
             if ("serviceWorker" in navigator) {
                 window.addEventListener("load", async () => {
                     try {
-                        const reg = await navigator.serviceWorker.register(
-                            "/sw.js",
-                            {
+                        console.log("Registering service worker...");
+                        const registration =
+                            await navigator.serviceWorker.register("/sw.js", {
                                 scope: "/",
-                            },
+                            });
+
+                        console.log(
+                            "Service Worker registered successfully:",
+                            registration.scope,
                         );
 
-                        // Optional: prompt user to refresh when a new SW is waiting
-                        let refreshing = false;
+                        // Handle service worker updates
+                        registration.addEventListener("updatefound", () => {
+                            const newWorker = registration.installing;
+                            if (newWorker) {
+                                newWorker.addEventListener(
+                                    "statechange",
+                                    () => {
+                                        if (newWorker.state === "installed") {
+                                            if (
+                                                navigator.serviceWorker
+                                                    .controller
+                                            ) {
+                                                console.log(
+                                                    "New service worker available",
+                                                );
+                                                // Optionally show update notification to user
+                                            } else {
+                                                console.log(
+                                                    "Service worker installed for first time",
+                                                );
+                                            }
+                                        }
+                                    },
+                                );
+                            }
+                        });
+
+                        // Handle controller changes
                         navigator.serviceWorker.addEventListener(
                             "controllerchange",
                             () => {
-                                if (refreshing) return;
-                                refreshing = true;
+                                console.log(
+                                    "Service worker controller changed",
+                                );
                                 window.location.reload();
                             },
                         );
-
-                        if (reg.waiting) {
-                            reg.waiting.postMessage({ type: "SKIP_WAITING" });
-                        }
-
-                        reg.addEventListener("updatefound", () => {
-                            const sw = reg.installing;
-                            if (!sw) return;
-                            sw.addEventListener("statechange", () => {
-                                if (
-                                    sw.state === "installed" &&
-                                    navigator.serviceWorker.controller
-                                ) {
-                                    // New version available; auto-activate (or show your own toast/confirm)
-                                    reg.waiting?.postMessage({
-                                        type: "SKIP_WAITING",
-                                    });
-                                }
-                            });
-                        });
-                    } catch (e) {
-                        // no-op
+                    } catch (error) {
+                        console.error(
+                            "Service Worker registration failed:",
+                            error,
+                        );
                     }
                 });
+            } else {
+                console.log("Service Worker not supported");
             }
         </script>
     </body>

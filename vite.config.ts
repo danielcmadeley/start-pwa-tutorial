@@ -14,33 +14,37 @@ export default defineConfig({
     tanstackStart({ customViteReactPlugin: true }),
     viteReact(),
     VitePWA({
-      strategies: "injectManifest",
-      srcDir: "src",
-      filename: "sw.ts",
-      registerType: "autoUpdate",
       injectRegister: false,
-
-      pwaAssets: {
-        disabled: false,
-        config: true,
-      },
+      registerType: "autoUpdate",
 
       manifest: {
-        name: "pwa-test-project",
-        short_name: "ptp",
-        description: "pwa-test-project",
+        name: "PWA Test Project",
+        short_name: "PWA Test",
+        description: "A TanStack Start PWA test application",
         theme_color: "#ffffff",
-      },
-
-      injectManifest: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,wasm,data}"],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB limit for PGlite WASM
-        dontCacheBustURLsMatching: /\.(?:js|css|wasm|data)$/,
+        background_color: "#ffffff",
+        display: "standalone",
+        start_url: "/",
+        scope: "/",
+        orientation: "portrait-primary",
+        icons: [
+          {
+            src: "/icons/icon-192.svg",
+            sizes: "192x192",
+            type: "image/svg+xml",
+            purpose: "any maskable",
+          },
+          {
+            src: "/icons/icon-512.svg",
+            sizes: "512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable",
+          },
+        ],
       },
 
       devOptions: {
         enabled: false,
-        navigateFallback: "index.html",
         suppressWarnings: true,
         type: "module",
       },
