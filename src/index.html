@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
+        <meta name="color-scheme" content="light dark" />
+        <meta name="theme-color" content="#0f172a" />
+        <meta name="description" content="Your app description here" />
+
+        <!-- PWA -->
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+        <title>Your App</title>
+    </head>
+    <body>
+        <noscript>JavaScript is required to run this app.</noscript>
+        <div id="root"></div>
+
+        <!-- SW registration: works with VitePWA registerType: 'autoUpdate' or manual -->
+        <script>
+            // If you use VitePWA({ registerType: 'autoUpdate' }), this is optional.
+            // For manual control (and your current workbox SW), keep this:
+            if ("serviceWorker" in navigator) {
+                window.addEventListener("load", async () => {
+                    try {
+                        const reg = await navigator.serviceWorker.register(
+                            "/sw.js",
+                            {
+                                scope: "/",
+                            },
+                        );
+
+                        // Optional: prompt user to refresh when a new SW is waiting
+                        let refreshing = false;
+                        navigator.serviceWorker.addEventListener(
+                            "controllerchange",
+                            () => {
+                                if (refreshing) return;
+                                refreshing = true;
+                                window.location.reload();
+                            },
+                        );
+
+                        if (reg.waiting) {
+                            reg.waiting.postMessage({ type: "SKIP_WAITING" });
+                        }
+
+                        reg.addEventListener("updatefound", () => {
+                            const sw = reg.installing;
+                            if (!sw) return;
+                            sw.addEventListener("statechange", () => {
+                                if (
+                                    sw.state === "installed" &&
+                                    navigator.serviceWorker.controller
+                                ) {
+                                    // New version available; auto-activate (or show your own toast/confirm)
+                                    reg.waiting?.postMessage({
+                                        type: "SKIP_WAITING",
+                                    });
+                                }
+                            });
+                        });
+                    } catch (e) {
+                        // no-op
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
