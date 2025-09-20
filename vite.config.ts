@@ -15,7 +15,7 @@ export default defineConfig({
     viteReact(),
     VitePWA({
       injectRegister: false,
-      registerType: "autoUpdate",
+      disable: false,
 
       manifest: {
         name: "PWA Test Project",
@@ -45,8 +45,6 @@ export default defineConfig({
 
       devOptions: {
         enabled: false,
-        suppressWarnings: true,
-        type: "module",
       },
     }),
   ],
